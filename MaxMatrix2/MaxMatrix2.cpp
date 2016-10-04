@@ -1,12 +1,14 @@
 /*
- * MaxMatrix
- * Version 1.0 Feb 2013
- * Copyright 2013 Oscar Kin-Chung Au
+ * MaxMatrix2
+ * 
+ * Version 0.1
+ * Update of MaxMatrix Version 1.0 Feb 2013 Copyright 2013 Oscar Kin-Chung Au
+ * 
  */
 
 
 #include "Arduino.h"
-#include "MaxMatrix.h"
+#include "MaxMatrix2.h"
 
 MaxMatrix::MaxMatrix(byte _data, byte _load, byte _clock, byte _num) 
 {
