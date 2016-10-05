@@ -102,19 +102,27 @@ void MaxMatrix::setColumnAll(byte col, byte value)
 	digitalWrite(load, HIGH);
 }
 
+// rewritten
 void MaxMatrix::setDot(byte col, byte row, byte value)
 {
-    bitWrite(buffer[col], row, value);
+  // target matrix number (from 0 to num-1) 
+  int n = (col-1)/8;
+  // virtual row number - (from 1 to 8*num) - 8 rows for each matrix
+  int vr = n * 8 + row;
+  // conversion from display to matrix col number (from 1 to 8)  
+  int vc = 8 - ((col-1) % 8);
 
-	int n = col / 8;
-	int c = col % 8;
+  bitWrite(buffer[vr], vc-1, value);
+    
 	digitalWrite(load, LOW);    
 	for (int i=0; i<num; i++) 
 	{
 		if (i == n)
 		{
-			shiftOut(data, clock, MSBFIRST, c + 1);
-			shiftOut(data, clock, MSBFIRST, buffer[col]);
+			// envoie le numero de ligne de la matrice a modifier
+			shiftOut(data, clock, MSBFIRST, row);
+			// envoie l'octet a afficher sur cette ligne
+			shiftOut(data, clock, MSBFIRST, buffer[vr]);
 		}
 		else
 		{
@@ -125,6 +133,8 @@ void MaxMatrix::setDot(byte col, byte row, byte value)
 	digitalWrite(load, LOW);
 	digitalWrite(load, HIGH);
 }
+
+
 
 void MaxMatrix::writeSprite(int x, int y, const byte* sprite)
 {
