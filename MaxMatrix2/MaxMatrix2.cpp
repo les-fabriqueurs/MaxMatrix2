@@ -65,44 +65,8 @@ void MaxMatrix::setCommand(byte command, byte value)
 }
 
 
-void MaxMatrix::setColumn(byte col, byte value)
-{
-	int n = col / 8;
-	int c = col % 8;
-	digitalWrite(load, LOW);    
-	for (int i=0; i<num; i++) 
-	{
-		if (i == n)
-		{
-			shiftOut(data, clock, MSBFIRST, c + 1);
-			shiftOut(data, clock, MSBFIRST, value);
-		}
-		else
-		{
-			shiftOut(data, clock, MSBFIRST, 0);
-			shiftOut(data, clock, MSBFIRST, 0);
-		}
-	}
-	digitalWrite(load, LOW);
-	digitalWrite(load, HIGH);
-	
-	buffer[col] = value;
-}
-
-void MaxMatrix::setColumnAll(byte col, byte value)
-{
-	digitalWrite(load, LOW);    
-	for (int i=0; i<num; i++) 
-	{
-		shiftOut(data, clock, MSBFIRST, col + 1);
-		shiftOut(data, clock, MSBFIRST, value);
-		buffer[col * i] = value;
-	}
-	digitalWrite(load, LOW);
-	digitalWrite(load, HIGH);
-}
-
-// rewritten
+v
+// rewritten for rotated matrix
 void MaxMatrix::setDot(byte col, byte row, byte value)
 {
   // target matrix number (from 0 to num-1) 
@@ -119,9 +83,9 @@ void MaxMatrix::setDot(byte col, byte row, byte value)
 	{
 		if (i == n)
 		{
-			// envoie le numero de ligne de la matrice a modifier
+			// Send the number of the line to modify 
 			shiftOut(data, clock, MSBFIRST, row);
-			// envoie l'octet a afficher sur cette ligne
+			// Send the byte to display on that line
 			shiftOut(data, clock, MSBFIRST, buffer[vr]);
 		}
 		else
@@ -135,20 +99,21 @@ void MaxMatrix::setDot(byte col, byte row, byte value)
 }
 
 
-
+ // rewritten for rotated matrix
+ // to update for optimization (setRow)
 void MaxMatrix::writeSprite(int x, int y, const byte* sprite)
 {
 	int w = sprite[0];
 	int h = sprite[1];
 	
-	if (h == 8 && y == 0)
-		for (int i=0; i<w; i++)
-		{
-			int c = x + i;
-			if (c>=0 && c<80)
-				setColumn(c, sprite[i+2]);
-		}
-	else
+//	if (h == 8 && y == 0)
+//		for (int i=0; i<w; i++)
+//		{
+//			int c = x + i;
+//			if (c>=0 && c<80)
+//				setColumn(c, sprite[i+2]);
+//		}
+//	else
 		for (int i=0; i<w; i++)
 			for (int j=0; j<h; j++)
 			{
@@ -159,16 +124,17 @@ void MaxMatrix::writeSprite(int x, int y, const byte* sprite)
 			}
 }
 
+ // rewritten for rotated matrix
 void MaxMatrix::reload()
 {
 	for (int i=0; i<8; i++)
 	{
-		int col = i;
+		int row = i;
 		digitalWrite(load, LOW);    
 		for (int j=0; j<num; j++) 
 		{
 			shiftOut(data, clock, MSBFIRST, i + 1);
-			shiftOut(data, clock, MSBFIRST, buffer[col]);
+			shiftOut(data, clock, MSBFIRST, buffer[row]);
 			col += 8;
 		}
 		digitalWrite(load, LOW);
@@ -176,51 +142,35 @@ void MaxMatrix::reload()
 	}
 }
 
+
+// rewritten for rotated matrix
 void MaxMatrix::shiftLeft(bool rotate, bool fill_zero)
 {
-	byte old = buffer[0];
-	int i;
+	//byte old = buffer[0];
+	//int i;
+	//for (i=0; i<80; i++)
+		//buffer[i] = buffer[i+1];
+	//if (rotate) buffer[num*8-1] = old;
+	//else if (fill_zero) buffer[num*8-1] = 0;
+  
+  int i;
+  byte old;
 	for (i=0; i<80; i++)
-		buffer[i] = buffer[i+1];
-	if (rotate) buffer[num*8-1] = old;
-	else if (fill_zero) buffer[num*8-1] = 0;
-	
+  {
+     if (i < 8)
+       bitWrite(old, 7, buffer[i]);
+     buffer[i] = buffer[i] << 1;    
+     bitWrite(buffer[i],0 ,bitRead(buffer[i+8],7));
+  }
+  if (rotate)
+  {
+    for (i=0; i<8; i++)
+      bitWrite(buffer[(num*8)-8 + i], 0, bitRead(old,i))  
+  }  
+  
 	reload();
 }
 
-void MaxMatrix::shiftRight(bool rotate, bool fill_zero)
-{
-	int last = num*8-1;
-	byte old = buffer[last];
-	int i;
-	for (i=79; i>0; i--)
-		buffer[i] = buffer[i-1];
-	if (rotate) buffer[0] = old;
-	else if (fill_zero) buffer[0] = 0;
-	
-	reload();
-}
 
-void MaxMatrix::shiftUp(bool rotate)
-{
-	for (int i=0; i<num*8; i++)
-	{
-		bool b = buffer[i] & 1;
-		buffer[i] >>= 1;
-		if (rotate) bitWrite(buffer[i], 7, b);
-	}
-	reload();
-}
-
-void MaxMatrix::shiftDown(bool rotate)
-{
-	for (int i=0; i<num*8; i++)
-	{
-		bool b = buffer[i] & 128;
-		buffer[i] <<= 1;
-		if (rotate) bitWrite(buffer[i], 0, b);
-	}
-	reload();
-}
 
 

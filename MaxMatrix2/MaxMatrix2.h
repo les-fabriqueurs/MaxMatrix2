@@ -42,15 +42,10 @@ class MaxMatrix
     void clear();
     void setCommand(byte command, byte value);
     void setIntensity(byte intensity);
-    void setColumn(byte col, byte value);
-    void setColumnAll(byte col, byte value);
     void setDot(byte col, byte row, byte value);
-    void writeSprite(int x, int y, const byte* sprite);
-    
+    void writeSprite(int x, int y, const byte* sprite);  
     void shiftLeft(bool rotate = false, bool fill_zero = true);
-    void shiftRight(bool rotate = false, bool fill_zero = true);
-    void shiftUp(bool rotate = false);
-    void shiftDown(bool rotate = false);
+
 };
 
 #endif
