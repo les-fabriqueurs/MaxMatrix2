@@ -46,11 +46,13 @@ void MaxMatrix::setIntensity(byte intensity)
 void MaxMatrix::clear()
 {
 	for (int i=0; i<8; i++) 
-		setColumnAll(i,0);
+		setRowAll(i,0);
 		
 	for (int i=0; i<80; i++)
 		buffer[i] = 0;
 }
+
+
 
 void MaxMatrix::setCommand(byte command, byte value)
 {
@@ -65,7 +67,20 @@ void MaxMatrix::setCommand(byte command, byte value)
 }
 
 
-v
+void MaxMatrix::setRowAll(byte row, byte value)
+{
+	digitalWrite(load, LOW);    
+	for (int i=0; i<num; i++) 
+	{
+		shiftOut(data, clock, MSBFIRST, row + 1);
+		shiftOut(data, clock, MSBFIRST, value);
+		buffer[row * i] = value;
+	}
+	digitalWrite(load, LOW);
+	digitalWrite(load, HIGH);
+}
+
+
 // rewritten for rotated matrix
 void MaxMatrix::setDot(byte col, byte row, byte value)
 {
@@ -135,7 +150,7 @@ void MaxMatrix::reload()
 		{
 			shiftOut(data, clock, MSBFIRST, i + 1);
 			shiftOut(data, clock, MSBFIRST, buffer[row]);
-			col += 8;
+			row += 8;
 		}
 		digitalWrite(load, LOW);
 		digitalWrite(load, HIGH);
@@ -165,7 +180,7 @@ void MaxMatrix::shiftLeft(bool rotate, bool fill_zero)
   if (rotate)
   {
     for (i=0; i<8; i++)
-      bitWrite(buffer[(num*8)-8 + i], 0, bitRead(old,i))  
+      bitWrite(buffer[(num*8)-8 + i], 0, bitRead(old,i));
   }  
   
 	reload();

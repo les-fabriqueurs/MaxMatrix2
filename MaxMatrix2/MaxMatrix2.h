@@ -42,6 +42,7 @@ class MaxMatrix
     void clear();
     void setCommand(byte command, byte value);
     void setIntensity(byte intensity);
+    void setRowAll(byte row, byte value);
     void setDot(byte col, byte row, byte value);
     void writeSprite(int x, int y, const byte* sprite);  
     void shiftLeft(bool rotate = false, bool fill_zero = true);
