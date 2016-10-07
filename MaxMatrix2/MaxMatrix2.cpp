@@ -84,14 +84,14 @@ void MaxMatrix::setRowAll(byte row, byte value)
 // rewritten for rotated matrix
 void MaxMatrix::setDot(byte col, byte row, byte value)
 {
-  // target matrix number (from 0 to num-1) 
-  int n = (col-1)/8;
-  // virtual row number - (from 1 to 8*num) - 8 rows for each matrix
+  // target matrix number (from 0 to num-1 for "in display" dot) 
+  int n = col/8;
+  // virtual row number - (from 0 to 8*num-1) - 8 rows for each matrix
   int vr = n * 8 + row;
-  // conversion from display to matrix col number (from 1 to 8)  
-  int vc = 8 - ((col-1) % 8);
+  // conversion from display to matrix col number (from 0 to 7)  
+  int vc = 7 - (col % 8);
 
-  bitWrite(buffer[vr], vc-1, value);
+  bitWrite(buffer[vr], vc, value);
     
 	digitalWrite(load, LOW);    
 	for (int i=0; i<num; i++) 
@@ -99,7 +99,7 @@ void MaxMatrix::setDot(byte col, byte row, byte value)
 		if (i == n)
 		{
 			// Send the number of the line to modify 
-			shiftOut(data, clock, MSBFIRST, row);
+			shiftOut(data, clock, MSBFIRST, row+1);
 			// Send the byte to display on that line
 			shiftOut(data, clock, MSBFIRST, buffer[vr]);
 		}
@@ -173,10 +173,14 @@ void MaxMatrix::shiftLeft(bool rotate, bool fill_zero)
 	for (i=0; i<80; i++)
   {
      if (i < 8)
-       bitWrite(old, 7, buffer[i]);
-     buffer[i] = buffer[i] << 1;    
-     bitWrite(buffer[i],0 ,bitRead(buffer[i+8],7));
+       bitWrite(old, 7, buffer[i]);      
+    buffer[i] = buffer[i] << 1; 
+    if (i<72)   
+      bitWrite(buffer[i],0 ,bitRead(buffer[i+8],7)); 
+    else
+      bitWrite(buffer[i],0 ,0);
   }
+   
   if (rotate)
   {
     for (i=0; i<8; i++)
